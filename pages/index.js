@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
 import Head from 'next/head';
 
-const TLDS = ['.com', '.net', '.org', '.io', '.co', '.dev', '.ai'];
-const DEFAULT_TLDS = ['.com', '.net', '.org'];
+const TLDS = ['.com', '.org', '.xyz', '.net'];
+const DEFAULT_TLDS = ['.com', '.org', '.xyz', '.net'];
 
 const t = {
   en: {
