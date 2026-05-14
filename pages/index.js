@@ -4,7 +4,39 @@ import Head from 'next/head';
 const TLDS = ['.com', '.net', '.org', '.io', '.co', '.dev', '.ai'];
 const DEFAULT_TLDS = ['.com', '.net', '.org'];
 
+const t = {
+  en: {
+    title:        'Find Your Perfect Domain',
+    subtitle:     'Check availability across multiple extensions instantly.',
+    placeholder:  'your website name here',
+    checkBtn:     'Check',
+    available:    'Available',
+    taken:        'Taken',
+    unknown:      'Unknown',
+    checking:     'Checking availability…',
+    errorTld:     'Select at least one extension.',
+    summaryOf:    (avail, total) =>
+      `${avail} available · ${total - avail} taken`,
+    premium:      'Premium',
+  },
+  fr: {
+    title:        'Trouvez Votre Domaine Idéal',
+    subtitle:     'Vérifiez la disponibilité sur plusieurs extensions.',
+    placeholder:  'nom de votre site ici',
+    checkBtn:     'Rechercher',
+    available:    'Disponible',
+    taken:        'Indisponible',
+    unknown:      'Inconnu',
+    checking:     'Vérification en cours…',
+    errorTld:     'Sélectionnez au moins une extension.',
+    summaryOf:    (avail, total) =>
+      `${avail} disponible · ${total - avail} indisponible`,
+    premium:      'Premium',
+  },
+};
+
 export default function DomainChecker() {
+  const [lang, setLang]             = useState('en');
   const [query, setQuery]           = useState('');
   const [selected, setSelected]     = useState(DEFAULT_TLDS);
   const [results, setResults]       = useState([]);
@@ -12,6 +44,8 @@ export default function DomainChecker() {
   const [error, setError]           = useState('');
   const [checked, setChecked]       = useState(false);
   const inputRef                    = useRef(null);
+
+  const tx = t[lang];
 
   const toggleTld = (tld) =>
     setSelected((prev) =>
@@ -25,7 +59,7 @@ export default function DomainChecker() {
       .split('.')[0];
 
     if (!base) { inputRef.current?.focus(); return; }
-    if (selected.length === 0) { setError('Select at least one extension.'); return; }
+    if (selected.length === 0) { setError(tx.errorTld); return; }
 
     setLoading(true);
     setError('');
@@ -66,16 +100,23 @@ export default function DomainChecker() {
 
           {/* ── Header ── */}
           <div style={s.header}>
-            <div style={s.logoRow}>
-              <img
-                src="/astronaut.png"
-                alt="Agency Nady"
-                style={s.logoImg}
-              />
-              <span style={s.logoText}>Start Website Now</span>
+            <div style={s.topRow}>
+              <div style={s.logoRow}>
+                <img src="/astronaut.png" alt="Start Website Now" style={s.logoImg} />
+                <span style={s.logoText}>Start Website Now</span>
+              </div>
+              {/* Language dropdown */}
+              <select
+                value={lang}
+                onChange={(e) => { setLang(e.target.value); setResults([]); setChecked(false); setError(''); }}
+                style={s.langSelect}
+              >
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+              </select>
             </div>
-            <h2 style={s.heading}>Find Your Perfect Domain</h2>
-            <p style={s.subheading}>Check availability across multiple extensions instantly.</p>
+            <h2 style={s.heading}>{tx.title}</h2>
+            <p style={s.subheading}>{tx.subtitle}</p>
           </div>
 
           {/* ── Search row ── */}
@@ -87,7 +128,7 @@ export default function DomainChecker() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleCheck()}
-                placeholder="yourbrand"
+                placeholder={tx.placeholder}
                 style={s.input}
                 spellCheck={false}
                 autoComplete="off"
@@ -104,10 +145,7 @@ export default function DomainChecker() {
                 if (!loading) Object.assign(e.currentTarget.style, s.checkBtn);
               }}
             >
-              {loading
-                ? <span style={s.spinner} />
-                : 'Check'
-              }
+              {loading ? <span style={s.spinner} /> : tx.checkBtn}
             </button>
           </div>
 
@@ -145,10 +183,7 @@ export default function DomainChecker() {
           {checked && results.length > 0 && (
             <div style={s.summaryBar}>
               <span style={s.summaryText}>
-                <strong style={{ color: '#0da85a' }}>{availableCount} available</strong>
-                {availableCount < results.length && (
-                  <> · <strong style={{ color: '#d93b3b' }}>{results.length - availableCount} taken</strong></>
-                )}
+                {tx.summaryOf(availableCount, results.length)}
               </span>
             </div>
           )}
@@ -167,15 +202,15 @@ export default function DomainChecker() {
                   <div style={s.resultLeft}>
                     <span style={r.available ? s.dotGreen : s.dotRed} />
                     <span style={s.domainText}>{r.domain}</span>
-                    {r.isPremium && <span style={s.premiumTag}>Premium</span>}
+                    {r.isPremium && <span style={s.premiumTag}>{tx.premium}</span>}
                   </div>
 
                   <div style={s.resultRight}>
                     {r.available === null
-                      ? <span style={s.unknownLabel}>Unknown</span>
+                      ? <span style={s.unknownLabel}>{tx.unknown}</span>
                       : r.available
-                        ? <span style={s.availableLabel}>Available</span>
-                        : <span style={s.takenLabel}>Taken</span>
+                        ? <span style={s.availableLabel}>{tx.available}</span>
+                        : <span style={s.takenLabel}>{tx.taken}</span>
                     }
                   </div>
                 </li>
@@ -187,7 +222,7 @@ export default function DomainChecker() {
           {loading && (
             <div style={s.loadingState}>
               <div style={s.loadingSpinner} />
-              <span style={s.loadingText}>Checking availability…</span>
+              <span style={s.loadingText}>{tx.checking}</span>
             </div>
           )}
 
@@ -223,6 +258,30 @@ const s = {
   header: {
     marginBottom: '32px',
   },
+  topRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '20px',
+  },
+  langSelect: {
+    fontFamily: "'Ubuntu', sans-serif",
+    fontWeight: 700,
+    fontSize: '13px',
+    color: '#334155',
+    background: '#f7f9fc',
+    border: '2px solid #d6e6ff',
+    borderRadius: '8px',
+    padding: '6px 10px',
+    cursor: 'pointer',
+    outline: 'none',
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    paddingRight: '28px',
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23647182' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 10px center',
+  },
   logoRow: {
     display: 'flex',
     alignItems: 'center',
@@ -245,7 +304,7 @@ const s = {
   heading: {
     fontFamily: "'Ubuntu', sans-serif",
     fontWeight: 700,
-    fontSize: '38px',
+    fontSize: '30px',
     color: '#0b1b33',
     letterSpacing: '-0.5px',
     lineHeight: 1.15,
@@ -284,7 +343,7 @@ const s = {
   // Primary button — light background
   checkBtn: {
     height: '60px',
-    minWidth: '120px',
+    minWidth: '140px',
     background: '#135fc2',
     color: '#ffffff',
     border: '4px solid #135fc2',
@@ -302,7 +361,7 @@ const s = {
   },
   checkBtnHover: {
     height: '60px',
-    minWidth: '120px',
+    minWidth: '140px',
     background: '#176bd1',
     color: '#ffffff',
     border: '4px solid #176bd1',
